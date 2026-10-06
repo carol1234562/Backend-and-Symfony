@@ -1,10 +1,18 @@
-
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
+# Dependencias de Composer
 /vendor/
-###< symfony/framework-bundle ###
+
+# Archivos temporales, caché y logs de Symfony
+/var/
+
+# Archivos de entorno local (¡nunca subas contraseñas reales a GitHub!)
+.env.local
+.env.local.php
+.env.*.local
+
+# Archivos de configuración de tu editor (Visual Studio Code, PhpStorm, etc.)
+/.vscode/
+/.idea/
+
+# Archivos basura del sistema operativo
+.DS_Store
+Thumbs.db
