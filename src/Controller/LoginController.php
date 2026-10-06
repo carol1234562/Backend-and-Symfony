@@ -14,13 +14,22 @@ class LoginController extends AbstractController {
         $this->appKernel = $appKernel;
     }
 
-    #[Route('/nurse/login', name: 'nurse', methods: ['POST'])]
+#[Route('/nurse/login', name: 'app_nurse_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse {
         // Decodificamos el JSON que llega en el body de la petición (ej desde Postman)
         $data = json_decode($request->getContent(), true);
 
         $email = $data['email'] ?? '';
         $password = $data['password'] ?? '';
+
+
+        if (empty($email) || empty($password)) {
+            return $this->json([
+                'error' => 'Missing email or password',
+                'success' => false, 
+                'login' => false
+            ], 400);
+        }
 
         // Ruta hacia el archivo JSON con los datos
         $filePath = $this->appKernel->getProjectDir() . '/public/nurses.json';
@@ -45,7 +54,15 @@ class LoginController extends AbstractController {
             }
         }
 
+        if ($authenticated) {
+            // Credenciales correctas: Devuelve 200 OK
+            return $this->json(['success' => true, 'login' => true], 200);
+        }
+
         // Tal como pide el diagrama de flujo del proyecto, devuelve true o false
-        return $this->json(['success' => $authenticated, 'login' => $authenticated]);
+        return $this->json(['error' => 'Invalid credentials',
+            'success' => false, 
+            'login' => false
+        ], 401);
 }
 }
