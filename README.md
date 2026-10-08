@@ -15,6 +15,7 @@ This repository contains a lightweight Symfony backend that:
 
 - PHP 8.2+
 - Symfony 7.4
+- Postman for tests
 - Composer
 - JSON-based data source
 
@@ -119,6 +120,7 @@ Make sure the following are installed on your machine:
 
 - PHP 8.2 or newer
 - Composer
+- Postman
 - A local web server or PHP built-in server
 
 ### Install dependencies
