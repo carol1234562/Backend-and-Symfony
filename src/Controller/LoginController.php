@@ -1,17 +1,14 @@
 <?php
 namespace App\Controller;
 
+use App\Service\NurseProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 class LoginController extends AbstractController {
-    private $appKernel;
-
-    public function __construct(KernelInterface $appKernel) {
-        $this->appKernel = $appKernel;
+    public function __construct(private NurseProvider $nurseProvider) {
     }
 
 #[Route('/nurse/login', name: 'app_nurse_login', methods: ['POST'])]
@@ -31,16 +28,11 @@ class LoginController extends AbstractController {
             ], 400);
         }
 
-        // Ruta hacia el archivo JSON con los datos
-        $filePath = $this->appKernel->getProjectDir() . '/public/nurses.json';
-        
-        if (!file_exists($filePath)) {
+        if (!$this->nurseProvider->fileExists()) {
             return $this->json(['error' => 'Data file not found'], 404);
         }
 
-        $jsonData = file_get_contents($filePath);
-        $allData = json_decode($jsonData, true);
-        $nurses = $allData['nurses'] ?? [];
+        $nurses = $this->nurseProvider->getAll();
 
         $authenticated = false;
 
