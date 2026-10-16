@@ -16,11 +16,8 @@ class User
     #[ORM\Column(length: 30)]
     private ?string $name = null;
 
-    #[ORM\Column]
-    private ?int $n = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $user = null;
+
 
     #[ORM\Column]
     private ?int $age = null;
@@ -45,29 +42,7 @@ class User
         return $this;
     }
 
-    public function getN(): ?int
-    {
-        return $this->n;
-    }
-
-    public function setN(int $n): static
-    {
-        $this->n = $n;
-
-        return $this;
-    }
-
-    public function getUser(): ?string
-    {
-        return $this->user;
-    }
-
-    public function setUser(string $user): static
-    {
-        $this->user = $user;
-
-        return $this;
-    }
+    
 
     public function getAge(): ?int
     {
