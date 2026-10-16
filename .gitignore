@@ -16,3 +16,8 @@
 # Archivos basura del sistema operativo
 .DS_Store
 Thumbs.db
+
+# Zips, logs y archivos temporales de editor
+*.zip
+*.log
+*.swp
