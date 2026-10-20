@@ -6,7 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User
+class User implements \JsonSerializable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -138,5 +138,25 @@ class User
         $this->password = $password;
 
         return $this;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'last_name' => $this->last_name,
+            'national_id' => $this->national_id,
+            'license_number' => $this->license_number,
+            'specialty' => $this->specialty,
+            'shift' => $this->shift,
+            'email' => $this->email,
+            'password' => $this->password,
+        ];
+    }
+
+    public function toArray(): array
+    {
+        return $this->jsonSerialize();
     }
 }

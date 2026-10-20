@@ -4,20 +4,21 @@ Symfony API developed as part of a vocational web development module at Stucom. 
 
 ## Overview
 
-This repository contains a lightweight Symfony backend that:
+This repository contains a Symfony backend API that:
 
-- Reads nurse data from a JSON file stored in `public/nurses.json`
-- Validates nurse login credentials through a dedicated endpoint
-- Exposes basic nurse listing and search endpoints
+- Manages nurse data stored in a local MySQL/MariaDB database via Doctrine ORM
+- Validates nurse login credentials through a dedicated endpoint against the database
+- Exposes nurse listing and search endpoints querying the local database
 - Returns JSON responses suitable for frontend integration or API testing tools
 
 ## Tech Stack
 
 - PHP 8.2+
 - Symfony 7.4
+- Doctrine ORM & Migrations
+- MySQL / MariaDB (XAMPP localhost)
 - Postman for tests
 - Composer
-- JSON-based data source
 
 ## Project Structure
 
@@ -154,9 +155,9 @@ These files contain application configuration and environment variables. Adjust 
 
 ## Notes
 
-- The project uses a local JSON file as its data source instead of a database.
-- `public/nurses.json` is the main source of nurse records.
-- This backend is suitable for learning Symfony routing, controllers, JSON response handling, and basic API authentication flows.
+- The project connects to a local MySQL/MariaDB database (`app`) configured via `DATABASE_URL` in `.env`.
+- Registered nurse records are stored in the `user` table and accessed using Doctrine ORM.
+- This backend demonstrates Symfony routing, controllers, Doctrine entity repositories, JSON response handling, and API authentication flows.
 
 ## Useful Commands
 

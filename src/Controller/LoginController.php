@@ -1,60 +1,72 @@
 <?php
+
 namespace App\Controller;
 
-use App\Service\NurseProvider;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-class LoginController extends AbstractController {
-    public function __construct(private NurseProvider $nurseProvider) {
+#[Route('/nurse')]
+class LoginController extends AbstractController
+{
+    public function __construct(private UserRepository $userRepository)
+    {
     }
 
-#[Route('/nurse/login', name: 'app_nurse_login', methods: ['POST'])]
-    public function login(Request $request): JsonResponse {
-        // Decodificamos el JSON que llega en el body de la petición (ej desde Postman)
+    // 1. Obtener todas las enfermeras
+    #[Route('/index', name: 'nurse_index', methods: ['GET'])]
+    public function index(): JsonResponse
+    {
+        $nurses = $this->userRepository->findAll();
+        return $this->json($nurses, 200);
+    }
+
+    // 2. Validación de inicio de sesión
+    #[Route('/login', name: 'app_nurse_login', methods: ['POST'])]
+    public function login(Request $request): JsonResponse
+    {
         $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
+            $data = $request->request->all();
+        }
 
         $email = $data['email'] ?? '';
         $password = $data['password'] ?? '';
 
-
         if (empty($email) || empty($password)) {
             return $this->json([
                 'error' => 'Missing email or password',
-                'success' => false, 
+                'success' => false,
                 'login' => false
             ], 400);
         }
 
-        if (!$this->nurseProvider->fileExists()) {
-            return $this->json(['error' => 'Data file not found'], 404);
+        $user = $this->userRepository->findOneBy(['email' => $email]);
+
+        if ($user && $user->getPassword() === $password) {
+            return $this->json(['success' => true, 'login' => true, 'user' => $user], 200);
         }
 
-        $nurses = $this->nurseProvider->getAll();
-
-        $authenticated = false;
-
-        // Recorremos los datos para validar el email y la contraseña
-        foreach ($nurses as $nurse) {
-            if (isset($nurse['email'], $nurse['password']) && 
-                $nurse['email'] === $email && 
-                $nurse['password'] === $password) {
-                $authenticated = true;
-                break;
-            }
-        }
-
-        if ($authenticated) {
-            // Credenciales correctas: Devuelve 200 OK
-            return $this->json(['success' => true, 'login' => true], 200);
-        }
-
-        // Tal como pide el diagrama de flujo del proyecto, devuelve true o false
-        return $this->json(['error' => 'Invalid credentials',
-            'success' => false, 
+        return $this->json([
+            'error' => 'Invalid credentials',
+            'success' => false,
             'login' => false
         ], 401);
-}
+    }
+
+    // 3. Buscar enfermera por nombre
+    #[Route('/name/{name}', name: 'nurse_by_name', methods: ['GET'])]
+    public function findByName(string $name): JsonResponse
+    {
+        // Busca enfermeras cuyo nombre coincida (puedes ajustar el repositorio si prefieres una búsqueda parcial con LIKE)
+        $nurses = $this->userRepository->findBy(['name' => $name]);
+
+        if (empty($nurses)) {
+            return $this->json(['message' => 'No se encontraron enfermeras con ese nombre'], 404);
+        }
+
+        return $this->json($nurses, 200);
+    }
 }
