@@ -10,9 +10,14 @@
             <tr>
                 <th>Id</th>
                 <th>Name</th>
-                <th>Age</th>
+                <th>Last Name</th>
+                <th>National ID</th>
+                <th>License Number</th>
+                <th>Specialty</th>
+                <th>Shift</th>
+                <th>Email</th>
                 <th>Password</th>
-                <th>actions</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -20,7 +25,12 @@
             <tr>
                 <td>{{ user.id }}</td>
                 <td>{{ user.name }}</td>
-                <td>{{ user.age }}</td>
+                <td>{{ user.lastName }}</td>
+                <td>{{ user.nationalId }}</td>
+                <td>{{ user.licenseNumber }}</td>
+                <td>{{ user.specialty }}</td>
+                <td>{{ user.shift }}</td>
+                <td>{{ user.email }}</td>
                 <td>{{ user.password }}</td>
                 <td>
                     <a href="{{ path('app_user_show', {'id': user.id}) }}">show</a>
@@ -29,7 +39,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="7">no records found</td>
+                <td colspan="10">no records found</td>
             </tr>
         {% endfor %}
         </tbody>
