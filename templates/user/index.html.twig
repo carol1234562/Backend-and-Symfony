@@ -1,49 +1,77 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}User index{% endblock %}
+{% block title %}Panel de Enfermería - Hospital{% endblock %}
 
 {% block body %}
-    <h1>User index</h1>
+<div class="container my-5">
+    <!-- Cabecera de la sección -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-dark">📋 Nursing Staff Index</h1>
+            <p class="text-muted mb-0">Management and control of nursing staff records.</p>
+        </div>
+        <a href="{{ path('app_user_new') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-lg"></i> Crear nuevo enfermero
+        </a>
+    </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Last Name</th>
-                <th>National ID</th>
-                <th>License Number</th>
-                <th>Specialty</th>
-                <th>Shift</th>
-                <th>Email</th>
-                <th>Password</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.name }}</td>
-                <td>{{ user.lastName }}</td>
-                <td>{{ user.nationalId }}</td>
-                <td>{{ user.licenseNumber }}</td>
-                <td>{{ user.specialty }}</td>
-                <td>{{ user.shift }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.password }}</td>
-                <td>
-                    <a href="{{ path('app_user_show', {'id': user.id}) }}">show</a>
-                    <a href="{{ path('app_user_edit', {'id': user.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="10">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_user_new') }}">Create new</a>
+    <!-- Tabla estilizada con Bootstrap -->
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark text-uppercase fs-7">
+                    <tr>
+                        <th class="py-3 ps-3">#ID</th>
+                        <th class="py-3">Nombre</th>
+                        <th class="py-3">Apellidos</th>
+                        <th class="py-3">DNI</th>
+                        <th class="py-3">Nº Licencia</th>
+                        <th class="py-3">Especialidad</th>
+                        <th class="py-3">Turno</th>
+                        <th class="py-3">Correo Electrónico</th>
+                        <th class="py-3">Contraseña</th>
+                        <th class="py-3 text-end pe-3">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td class="ps-3 fw-bold text-secondary">{{ user.id }}</td>
+                        <td class="fw-semibold text-dark">{{ user.name }}</td>
+                        <td>{{ user.lastName }}</td>
+                        <td><code>{{ user.nationalId }}</code></td>
+                        <td><span class="badge bg-light text-dark border">{{ user.licenseNumber }}</span></td>
+                        <td>
+                            <span class="badge bg-info text-dark">{{ user.specialty }}</span>
+                        </td>
+                        <td>
+                            <span class="badge {% if user.shift == 'Morning' or user.shift == 'Mañana' %}bg-warning text-dark{% elseif user.shift == 'Afternoon' or user.shift == 'Tarde' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                {{ user.shift }}
+                            </span>
+                        </td>
+                        <td class="text-muted">{{ user.email }}</td>
+                        <td><span class="text-muted font-monospace">••••••••</span></td>
+                        <td class="text-end pe-3">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ path('app_user_show', {'id': user.id}) }}" class="btn btn-outline-secondary" title="Ver detalles">
+                                    Ver
+                                </a>
+                                <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn btn-outline-primary" title="Editar registro">
+                                    Editar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="10" class="text-center py-4 text-muted">
+                            No se encontraron registros de enfermeros en la base de datos.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}
