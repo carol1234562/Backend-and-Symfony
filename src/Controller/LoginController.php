@@ -45,7 +45,7 @@ class LoginController extends AbstractController
 
         $user = $this->userRepository->findOneBy(['email' => $email]);
 
-        if ($user && $user->getPassword() === $password) {
+        if ($user && ($user->getPassword() === $password || password_verify($password, $user->getPassword()))) {
             return $this->json(['success' => true, 'login' => true, 'user' => $user], 200);
         }
 

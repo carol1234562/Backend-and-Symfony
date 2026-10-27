@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '4a307a00e5f6c6e07f7ebf38c0b831f7031a9764',
+        'reference' => 'aadeafb3387af4ec189bf6dc0e2353c9a7f80130',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '4a307a00e5f6c6e07f7ebf38c0b831f7031a9764',
+            'reference' => 'aadeafb3387af4ec189bf6dc0e2353c9a7f80130',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -160,6 +160,21 @@
                 0 => '2.0|3.0',
             ),
         ),
+        'psr/clock' => array(
+            'pretty_version' => '1.0.0',
+            'version' => '1.0.0.0',
+            'reference' => 'e41a24703d4560fd0acb709162f73b8adfc3aa0d',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../psr/clock',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'psr/clock-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '1.0',
+            ),
+        ),
         'psr/container' => array(
             'pretty_version' => '2.0.2',
             'version' => '2.0.2.0',
@@ -234,6 +249,15 @@
             'provided' => array(
                 0 => '1.1|2.0|3.0',
             ),
+        ),
+        'symfony/clock' => array(
+            'pretty_version' => 'v7.4.21',
+            'version' => '7.4.21.0',
+            'reference' => '07437f612dca89c1894c1db04491002b1e798f03',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/clock',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'symfony/config' => array(
             'pretty_version' => 'v7.4.17',
@@ -577,6 +601,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'symfony/security-bundle' => array(
+            'pretty_version' => 'v7.4.21',
+            'version' => '7.4.21.0',
+            'reference' => '8d1f753d3569a49280adc052ec9ffa10a7ece859',
+            'type' => 'symfony-bundle',
+            'install_path' => __DIR__ . '/../symfony/security-bundle',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/security-core' => array(
             'pretty_version' => 'v7.4.20',
             'version' => '7.4.20.0',
@@ -592,6 +625,15 @@
             'reference' => '16b3aa2f67d02fb0dbd013a8759bbe90daaa9c5d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/security-csrf',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/security-http' => array(
+            'pretty_version' => 'v7.4.21',
+            'version' => '7.4.21.0',
+            'reference' => '07fcd6b1428a8f0c84f5cb98da6428abb8b89199',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/security-http',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
