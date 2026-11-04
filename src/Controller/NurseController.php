@@ -22,6 +22,7 @@ class NurseController extends AbstractController
     public function index(): JsonResponse
     {
         $nurses = $this->userRepository->findAll();
+
         return $this->json($nurses, 200);
     }
 
@@ -37,54 +38,21 @@ class NurseController extends AbstractController
         return $this->json($nurse, 200);
     }
 
-<<<<<<< HEAD
-    #[Route('/nurse/{id}', name: 'app_nurse_show', methods: ['GET'])]
+    #[Route('/nurse/{id}', name: 'app_nurse_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(int $id): JsonResponse
-=======
-    #[Route('/nurse/{id}', name: 'app_nurse_find_by_id', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function findById(int $id): JsonResponse
->>>>>>> dc1db1a4596afcb2baedcd8ecc2519af48ca6170
     {
         $nurse = $this->userRepository->find($id);
 
         if (!$nurse) {
-<<<<<<< HEAD
             return $this->json([
                 'error' => 'Nurse not found',
                 'success' => false,
             ], 404);
-=======
-            return $this->json(['error' => 'Nurse not found'], 404);
->>>>>>> dc1db1a4596afcb2baedcd8ecc2519af48ca6170
         }
 
         return $this->json($nurse, 200);
     }
 
-<<<<<<< HEAD
-    #[Route('/nurse/{id}', name: 'app_nurse_delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $nurse = $this->userRepository->find($id);
-
-        if (!$nurse) {
-            return $this->json([
-                'error' => 'Nurse not found',
-                'success' => false,
-            ], 404);
-        }
-
-        $entityManager->remove($nurse);
-        $entityManager->flush();
-
-        return $this->json([
-            'message' => 'Nurse deleted successfully',
-            'success' => true,
-        ], 200);
-    }
-
-=======
->>>>>>> dc1db1a4596afcb2baedcd8ecc2519af48ca6170
     #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
     public function create(
         Request $request,
@@ -116,7 +84,7 @@ class NurseController extends AbstractController
 
         $missingFields = [];
         foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || trim((string)$data[$field]) === '') {
+            if (!isset($data[$field]) || trim((string) $data[$field]) === '') {
                 $missingFields[] = $field;
             }
         }
@@ -129,7 +97,7 @@ class NurseController extends AbstractController
             ], 400);
         }
 
-        $email = trim((string)$data['email']);
+        $email = trim((string) $data['email']);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->json([
                 'error' => 'Invalid email format',
@@ -144,14 +112,14 @@ class NurseController extends AbstractController
             ], 400);
         }
 
-        if ($this->userRepository->findOneBy(['national_id' => trim((string)$data['national_id'])])) {
+        if ($this->userRepository->findOneBy(['national_id' => trim((string) $data['national_id'])])) {
             return $this->json([
                 'error' => 'National ID already registered',
                 'success' => false,
             ], 400);
         }
 
-        if ($this->userRepository->findOneBy(['license_number' => trim((string)$data['license_number'])])) {
+        if ($this->userRepository->findOneBy(['license_number' => trim((string) $data['license_number'])])) {
             return $this->json([
                 'error' => 'License number already registered',
                 'success' => false,
@@ -159,15 +127,15 @@ class NurseController extends AbstractController
         }
 
         $user = new User();
-        $user->setName(trim((string)$data['name']));
-        $user->setLastName(trim((string)$data['last_name']));
-        $user->setNationalId(trim((string)$data['national_id']));
-        $user->setLicenseNumber(trim((string)$data['license_number']));
-        $user->setSpecialty(trim((string)$data['specialty']));
-        $user->setShift(trim((string)$data['shift']));
+        $user->setName(trim((string) $data['name']));
+        $user->setLastName(trim((string) $data['last_name']));
+        $user->setNationalId(trim((string) $data['national_id']));
+        $user->setLicenseNumber(trim((string) $data['license_number']));
+        $user->setSpecialty(trim((string) $data['specialty']));
+        $user->setShift(trim((string) $data['shift']));
         $user->setEmail($email);
 
-        $hashedPassword = $passwordHasher->hashPassword($user, (string)$data['password']);
+        $hashedPassword = $passwordHasher->hashPassword($user, (string) $data['password']);
         $user->setPassword($hashedPassword);
 
         try {
