@@ -142,6 +142,16 @@ class NurseController extends AbstractController
         }
 
         return $this->json($nurse, 200);
+        return $this->json([
+            'id' => $nurse->getId(),
+            'name' => $nurse->getName(),
+            'last_name' => $nurse->getLastName(),
+            'national_id' => $nurse->getNationalId(),
+            'license_number' => $nurse->getLicenseNumber(),
+            'specialty' => $nurse->getSpecialty(),
+            'shift' => $nurse->getShift(),
+            'email' => $nurse->getEmail(),
+        ], 201);
     }
 
     #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
@@ -174,8 +184,8 @@ class NurseController extends AbstractController
         ];
 
         $missingFields = [];
-        foreach (array_keys($fieldMaxLengths) as $field) {
-            if (!isset($data[$field]) || !is_scalar($data[$field]) || trim((string) $data[$field]) === '') {
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field]) || trim((string) $data[$field]) === '') {
                 $missingFields[] = $field;
             }
         }
