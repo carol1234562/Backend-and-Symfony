@@ -24,14 +24,25 @@ class LoginController extends AbstractController
             $data = $request->request->all();
         }
 
-        $email = $data['email'] ?? '';
-        $password = $data['password'] ?? '';
+        $rawEmail = $data['email'] ?? '';
+        $rawPassword = $data['password'] ?? '';
 
-        if (empty($email) || empty($password)) {
+        if (!is_string($rawEmail) || !is_string($rawPassword)) {
+            return $this->json([
+                'error' => 'Invalid email or password format',
+                'success' => false,
+                'login' => false,
+            ], 400);
+        }
+
+        $email = trim($rawEmail);
+        $password = $rawPassword;
+
+        if ($email === '' || trim($password) === '') {
             return $this->json([
                 'error' => 'Missing email or password',
                 'success' => false,
-                'login' => false
+                'login' => false,
             ], 400);
         }
 
@@ -44,7 +55,7 @@ class LoginController extends AbstractController
         return $this->json([
             'error' => 'Invalid credentials',
             'success' => false,
-            'login' => false
+            'login' => false,
         ], 401);
     }
 }
