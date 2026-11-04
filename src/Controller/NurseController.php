@@ -37,6 +37,11 @@ class NurseController extends AbstractController
         return $this->json($nurse, 200);
     }
 
+<<<<<<< HEAD
+=======
+    #[Route('/nurse/{id}', name: 'app_nurse_update', requirements: ['id' => '\d+'], methods: ['PUT'])]
+    public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+>>>>>>> 955414de89ebeb23769d59923dee50613d70e560
     #[Route('/nurse/{id}', name: 'app_nurse_find_by_id', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function findById(int $id): JsonResponse
     {
@@ -46,6 +51,7 @@ class NurseController extends AbstractController
             return $this->json(['error' => 'Nurse not found'], 404);
         }
 
+<<<<<<< HEAD
         return $this->json($nurse, 200);
     }
 
@@ -62,6 +68,8 @@ class NurseController extends AbstractController
             return $this->json(['error' => 'Nurse not found'], 404);
         }
 
+=======
+>>>>>>> 955414de89ebeb23769d59923dee50613d70e560
         try {
             $data = json_decode($request->getContent(), false, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
@@ -103,10 +111,14 @@ class NurseController extends AbstractController
                 continue;
             }
 
+<<<<<<< HEAD
             $existingUser = ($rules['unique'] ?? false)
                 ? $this->userRepository->findOneBy([$field => $value])
                 : null;
             if ($existingUser !== null && $existingUser->getId() !== $id) {
+=======
+            if (($rules['unique'] ?? false) && $this->userRepository->findOneBy([$field => $value])?->getId() !== $id) {
+>>>>>>> 955414de89ebeb23769d59923dee50613d70e560
                 $errors[$field] = 'This value is already in use.';
                 continue;
             }
@@ -119,11 +131,15 @@ class NurseController extends AbstractController
         }
 
         foreach ($fields as $field => $rules) {
+<<<<<<< HEAD
             if ($field === 'password') {
                 $nurse->setPassword($passwordHasher->hashPassword($nurse, $values['password']));
             } else {
                 $nurse->{$rules['setter']}($values[$field]);
             }
+=======
+            $nurse->{$rules['setter']}($values[$field]);
+>>>>>>> 955414de89ebeb23769d59923dee50613d70e560
         }
 
         try {
@@ -143,6 +159,12 @@ class NurseController extends AbstractController
             'email' => $nurse->getEmail(),
         ], 200);
     }
+<<<<<<< HEAD
+=======
+}
+        return $this->json($nurse, 200);
+    }
+>>>>>>> 955414de89ebeb23769d59923dee50613d70e560
 
     #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
     public function create(
