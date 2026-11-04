@@ -40,11 +40,26 @@ class NurseController extends AbstractController
 
     #[Route('/nurse/{id}', name: 'app_nurse_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(int $id): JsonResponse
-    #[Route('/nurse/{id}', name: 'app_nurse_update', requirements: ['id' => '\d+'], methods: ['PUT'])]
-    public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
-    #[Route('/nurse/{id}', name: 'app_nurse_find_by_id', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function findById(int $id): JsonResponse main
     {
+        $nurse = $this->userRepository->find($id);
+
+        if (!$nurse) {
+            return $this->json([
+                'error' => 'Nurse not found',
+                'success' => false,
+            ], 404);
+        }
+
+        return $this->json($nurse, 200);
+    }
+
+    #[Route('/nurse/{id}', name: 'app_nurse_update', requirements: ['id' => '\d+'], methods: ['PUT'])]
+    public function update(
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $passwordHasher
+    ): JsonResponse {
         $nurse = $this->userRepository->find($id);
 
         if (!$nurse) {
@@ -95,7 +110,10 @@ class NurseController extends AbstractController
                 continue;
             }
 
-            if (($rules['unique'] ?? false) && $this->userRepository->findOneBy([$field => $value])?->getId() !== $id) {
+            $existingUser = ($rules['unique'] ?? false)
+                ? $this->userRepository->findOneBy([$field => $value])
+                : null;
+            if ($existingUser !== null && $existingUser->getId() !== $id) {
                 $errors[$field] = 'This value is already in use.';
                 continue;
             }
@@ -108,7 +126,11 @@ class NurseController extends AbstractController
         }
 
         foreach ($fields as $field => $rules) {
-            $nurse->{$rules['setter']}($values[$field]);
+            if ($field === 'password') {
+                $nurse->setPassword($passwordHasher->hashPassword($nurse, $values['password']));
+            } else {
+                $nurse->{$rules['setter']}($values[$field]);
+            }
         }
 
         try {
@@ -127,9 +149,6 @@ class NurseController extends AbstractController
             'shift' => $nurse->getShift(),
             'email' => $nurse->getEmail(),
         ], 200);
-    }
-}
-        return $this->json($nurse, 200);
     }
 
     #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
