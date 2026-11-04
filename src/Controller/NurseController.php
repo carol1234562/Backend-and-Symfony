@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class NurseController extends AbstractController
@@ -37,6 +39,8 @@ class NurseController extends AbstractController
 
     #[Route('/nurse/{id}', name: 'app_nurse_update', requirements: ['id' => '\d+'], methods: ['PUT'])]
     public function update(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/nurse/{id}', name: 'app_nurse_find_by_id', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function findById(int $id): JsonResponse
     {
         $nurse = $this->userRepository->find($id);
 
@@ -116,6 +120,137 @@ class NurseController extends AbstractController
             'specialty' => $nurse->getSpecialty(),
             'shift' => $nurse->getShift(),
             'email' => $nurse->getEmail(),
+        ], 200);
+    }
+}
+        return $this->json($nurse, 200);
+    }
+
+    #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
+    public function create(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $passwordHasher
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
+            $data = $request->request->all();
+        }
+
+        if (!is_array($data) || empty($data)) {
+            return $this->json([
+                'error' => 'Invalid or empty JSON payload',
+                'success' => false,
+            ], 400);
+        }
+
+        $requiredFields = [
+            'name',
+            'last_name',
+            'national_id',
+            'license_number',
+            'specialty',
+            'shift',
+            'email',
+            'password',
+        ];
+
+        $missingFields = [];
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field]) || trim((string)$data[$field]) === '') {
+                $missingFields[] = $field;
+            }
+        }
+
+        if (!empty($missingFields)) {
+            return $this->json([
+                'error' => 'Missing required fields: ' . implode(', ', $missingFields),
+                'missing_fields' => $missingFields,
+                'success' => false,
+            ], 400);
+        }
+
+        $email = trim((string)$data['email']);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json([
+                'error' => 'Invalid email format',
+                'success' => false,
+            ], 400);
+        }
+
+        if ($this->userRepository->findOneBy(['email' => $email])) {
+            return $this->json([
+                'error' => 'Email already registered',
+                'success' => false,
+            ], 400);
+        }
+
+        if ($this->userRepository->findOneBy(['national_id' => trim((string)$data['national_id'])])) {
+            return $this->json([
+                'error' => 'National ID already registered',
+                'success' => false,
+            ], 400);
+        }
+
+        if ($this->userRepository->findOneBy(['license_number' => trim((string)$data['license_number'])])) {
+            return $this->json([
+                'error' => 'License number already registered',
+                'success' => false,
+            ], 400);
+        }
+
+        $user = new User();
+        $user->setName(trim((string)$data['name']));
+        $user->setLastName(trim((string)$data['last_name']));
+        $user->setNationalId(trim((string)$data['national_id']));
+        $user->setLicenseNumber(trim((string)$data['license_number']));
+        $user->setSpecialty(trim((string)$data['specialty']));
+        $user->setShift(trim((string)$data['shift']));
+        $user->setEmail($email);
+
+        $hashedPassword = $passwordHasher->hashPassword($user, (string)$data['password']);
+        $user->setPassword($hashedPassword);
+
+        try {
+            $entityManager->persist($user);
+            $entityManager->flush();
+        } catch (UniqueConstraintViolationException) {
+            return $this->json([
+                'error' => 'A user with the provided email, national ID or license number already exists',
+                'success' => false,
+            ], 400);
+        } catch (\Throwable $e) {
+            return $this->json([
+                'error' => 'Could not save nurse: ' . $e->getMessage(),
+                'success' => false,
+            ], 500);
+        }
+
+        return $this->json([
+            'message' => 'Nurse created successfully',
+            'success' => true,
+            'nurse' => $user,
+        ], 201);
+    }
+
+    #[Route('/nurse/{id}', name: 'app_nurse_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $nurse = $this->userRepository->find($id);
+
+        if (!$nurse) {
+            return $this->json([
+                'error' => 'Nurse not found',
+                'success' => false,
+            ], 404);
+        }
+
+        $entityManager->remove($nurse);
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Nurse deleted successfully',
+            'success' => true,
         ], 200);
     }
 }

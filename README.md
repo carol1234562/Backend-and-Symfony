@@ -106,14 +106,68 @@ Example invalid credentials response (HTTP 401):
 }
 ```
 
-### 2. List All Nurses
+### 2. Create Nurse
+Creates and persists a new nurse in the centralized cloud database with encrypted password using Symfony's password hasher.
+
+Endpoint:
+
+- `POST /nurse`
+
+Expected JSON body:
+
+```json
+{
+  "name": "Lucía",
+  "last_name": "Fernández Ruiz",
+  "national_id": "45678901B",
+  "license_number": "ENF-4567",
+  "specialty": "Pediatrics",
+  "shift": "Morning",
+  "email": "lucia.fernandez@hospital.com",
+  "password": "Password123!"
+}
+```
+
+Example success response (HTTP 201 Created):
+
+```json
+{
+  "message": "Nurse created successfully",
+  "success": true,
+  "nurse": {
+    "id": 13,
+    "name": "Lucía",
+    "last_name": "Fernández Ruiz",
+    "national_id": "45678901B",
+    "license_number": "ENF-4567",
+    "specialty": "Pediatrics",
+    "shift": "Morning",
+    "email": "lucia.fernandez@hospital.com",
+    "password": "$2y$13$..."
+  }
+}
+```
+
+Example missing data or validation error (HTTP 400 Bad Request):
+
+```json
+{
+  "error": "Missing required fields: password",
+  "missing_fields": [
+    "password"
+  ],
+  "success": false
+}
+```
+
+### 3. List All Nurses
 Endpoint:
 
 - `GET /nurse/index`
 
 Queries the cloud database and returns a JSON array of all registered nurses/users.
 
-### 3. Search Nurse by Name
+### 4. Search Nurse by Name
 Endpoint:
 
 - `GET /nurse/name/{name}`
@@ -132,7 +186,7 @@ If a match is found, the API returns the matching nurse record(s). Otherwise, it
 }
 ```
 
-### 4. User CRUD (Web)
+### 5. User CRUD (Web)
 Endpoints under `/user` provide full management capabilities (List, Create, Show, Edit, Delete) for user entities via Twig templates:
 
 - `GET /user` - User listing
