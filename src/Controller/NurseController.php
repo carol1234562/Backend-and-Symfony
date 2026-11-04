@@ -183,6 +183,8 @@ class NurseController extends AbstractController
             'password' => 255,
         ];
 
+        $requiredFields = ['name', 'last_name', 'national_id', 'license_number', 'email', 'password'];
+
         $missingFields = [];
         foreach ($requiredFields as $field) {
             if (!isset($data[$field]) || trim((string) $data[$field]) === '') {
