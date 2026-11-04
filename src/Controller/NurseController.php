@@ -141,16 +141,7 @@ class NurseController extends AbstractController
             return $this->json(['error' => 'A nurse with one of these unique values already exists'], 400);
         }
 
-        return $this->json([
-            'id' => $nurse->getId(),
-            'name' => $nurse->getName(),
-            'last_name' => $nurse->getLastName(),
-            'national_id' => $nurse->getNationalId(),
-            'license_number' => $nurse->getLicenseNumber(),
-            'specialty' => $nurse->getSpecialty(),
-            'shift' => $nurse->getShift(),
-            'email' => $nurse->getEmail(),
-        ], 200);
+        return $this->json($nurse, 200);
     }
 
     #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
@@ -171,19 +162,19 @@ class NurseController extends AbstractController
             ], 400);
         }
 
-        $requiredFields = [
-            'name',
-            'last_name',
-            'national_id',
-            'license_number',
-            'specialty',
-            'shift',
-            'email',
-            'password',
+        $fieldMaxLengths = [
+            'name' => 255,
+            'last_name' => 255,
+            'national_id' => 50,
+            'license_number' => 50,
+            'specialty' => 100,
+            'shift' => 50,
+            'email' => 255,
+            'password' => 255,
         ];
 
         $missingFields = [];
-        foreach ($requiredFields as $field) {
+        foreach (array_keys($fieldMaxLengths) as $field) {
             if (!isset($data[$field]) || !is_scalar($data[$field]) || trim((string) $data[$field]) === '') {
                 $missingFields[] = $field;
             }
@@ -195,6 +186,15 @@ class NurseController extends AbstractController
                 'missing_fields' => $missingFields,
                 'success' => false,
             ], 400);
+        }
+
+        foreach ($fieldMaxLengths as $field => $maxLength) {
+            if (mb_strlen(trim((string) $data[$field])) > $maxLength) {
+                return $this->json([
+                    'error' => sprintf('Field "%s" must not exceed %d characters', $field, $maxLength),
+                    'success' => false,
+                ], 400);
+            }
         }
 
         $email = trim((string) $data['email']);
