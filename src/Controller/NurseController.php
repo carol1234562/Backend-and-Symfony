@@ -22,6 +22,7 @@ class NurseController extends AbstractController
     public function index(): JsonResponse
     {
         $nurses = $this->userRepository->findAll();
+
         return $this->json($nurses, 200);
     }
 
@@ -98,6 +99,8 @@ class NurseController extends AbstractController
                 $errors[$field] = 'This field is required and must be a non-empty string.';
                 continue;
             }
+
+            $value = trim($value);
 
             if (mb_strlen($value) > $rules['maxLength']) {
                 $errors[$field] = sprintf('This field must not exceed %d characters.', $rules['maxLength']);
@@ -181,7 +184,7 @@ class NurseController extends AbstractController
 
         $missingFields = [];
         foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || trim((string)$data[$field]) === '') {
+            if (!isset($data[$field]) || !is_scalar($data[$field]) || trim((string) $data[$field]) === '') {
                 $missingFields[] = $field;
             }
         }
@@ -194,7 +197,7 @@ class NurseController extends AbstractController
             ], 400);
         }
 
-        $email = trim((string)$data['email']);
+        $email = trim((string) $data['email']);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->json([
                 'error' => 'Invalid email format',
@@ -209,14 +212,14 @@ class NurseController extends AbstractController
             ], 400);
         }
 
-        if ($this->userRepository->findOneBy(['national_id' => trim((string)$data['national_id'])])) {
+        if ($this->userRepository->findOneBy(['national_id' => trim((string) $data['national_id'])])) {
             return $this->json([
                 'error' => 'National ID already registered',
                 'success' => false,
             ], 400);
         }
 
-        if ($this->userRepository->findOneBy(['license_number' => trim((string)$data['license_number'])])) {
+        if ($this->userRepository->findOneBy(['license_number' => trim((string) $data['license_number'])])) {
             return $this->json([
                 'error' => 'License number already registered',
                 'success' => false,
@@ -224,15 +227,15 @@ class NurseController extends AbstractController
         }
 
         $user = new User();
-        $user->setName(trim((string)$data['name']));
-        $user->setLastName(trim((string)$data['last_name']));
-        $user->setNationalId(trim((string)$data['national_id']));
-        $user->setLicenseNumber(trim((string)$data['license_number']));
-        $user->setSpecialty(trim((string)$data['specialty']));
-        $user->setShift(trim((string)$data['shift']));
+        $user->setName(trim((string) $data['name']));
+        $user->setLastName(trim((string) $data['last_name']));
+        $user->setNationalId(trim((string) $data['national_id']));
+        $user->setLicenseNumber(trim((string) $data['license_number']));
+        $user->setSpecialty(trim((string) $data['specialty']));
+        $user->setShift(trim((string) $data['shift']));
         $user->setEmail($email);
 
-        $hashedPassword = $passwordHasher->hashPassword($user, (string)$data['password']);
+        $hashedPassword = $passwordHasher->hashPassword($user, (string) $data['password']);
         $user->setPassword($hashedPassword);
 
         try {
@@ -255,5 +258,26 @@ class NurseController extends AbstractController
             'success' => true,
             'nurse' => $user,
         ], 201);
+    }
+
+    #[Route('/nurse/{id}', name: 'app_nurse_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $nurse = $this->userRepository->find($id);
+
+        if (!$nurse) {
+            return $this->json([
+                'error' => 'Nurse not found',
+                'success' => false,
+            ], 404);
+        }
+
+        $entityManager->remove($nurse);
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Nurse deleted successfully',
+            'success' => true,
+        ], 200);
     }
 }
