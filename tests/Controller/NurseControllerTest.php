@@ -14,7 +14,7 @@ class NurseControllerTest extends WebTestCase
 
         // 1. CREATE (POST /nurse) -> 201 Created
         $createPayload = [
-            'name' => 'nursetest',
+            'name' => 'TestNurse',
             'last_name' => 'Gómez',
             'national_id' => 'DNI-' . $uniqueSuffix,
             'license_number' => 'LIC-' . $uniqueSuffix,
