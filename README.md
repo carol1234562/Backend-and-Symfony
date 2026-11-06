@@ -1,286 +1,203 @@
-# Backend and Symfony
+# 🏥 Hospital Nurse Application — Backend REST API
 
-Symfony API developed as part of a vocational web development module at Stucom. The project exposes endpoints for nurse data management, user CRUD operations, and login verification, returning JSON responses and connecting to a cloud-hosted database.
+## 📖 Description
 
-## Overview
+**Hospital Nurse Application** is a RESTful API developed with **Symfony** and **PHP 8.2**, designed to manage hospital emergency nursing staff in a centralized, secure, and efficient manner.
 
-This repository contains a Symfony backend API that:
+### What problem does it solve?
+In hospital emergency environments, manual or decentralized management of shifts, specialties, and healthcare personnel credentials leads to delays and administrative errors. This application solves this problem by providing a standardized backend that automates the complete lifecycle of nurse records (**CRUD**: Create, Read, Update, and Delete), validates the integrity of their professional data (National ID, license number, specialty, and shift), and authenticates their access credentials in real time.
 
-- Connects to a cloud-hosted MySQL database (hosted on Filess.io) via Doctrine ORM.
-- Validates nurse login credentials through a dedicated endpoint against remote database records.
-- Exposes nurse listing and search endpoints querying the cloud database in real time.
-- Provides User CRUD management controllers and templates.
-- Returns JSON responses suitable for frontend integration and API testing tools.
+### Main Features
+* **Comprehensive Nurse Management (CRUD):** REST endpoints to register, list, search by ID or name, update, and delete nursing records.
+* **Authentication System (Nurse Login):** Secure validation of access credentials for registered personnel.
+* **Strict Data Validation:** Control of mandatory fields, email format validation, length limits, and duplicate prevention (Email, National ID, and License Number).
+* **Quality and Automation (CI/CD):** Automated test suite using **PHPUnit** integrated into a **GitHub Actions** workflow that validates code on every *push* and *Pull Request*.
 
-## Tech Stack
+---
 
-- PHP 8.2+
-- Symfony 7.4
-- Doctrine ORM & Migrations
-- Cloud MySQL Database (hosted on Filess.io)
-- Composer
-- Postman / cURL for API testing
+## 🛠️ Prerequisites
 
-## Project Structure
+Before starting the installation, make sure you have the following tools installed on your system:
 
-```text
-Backend-and-Symfony/
-├── config/
-│   ├── packages/
-│   │   └── doctrine.yaml
-│   ├── routes/
-│   ├── bundles.php
-│   ├── preload.php
-│   ├── routes.yaml
-│   └── services.yaml
-├── migrations/
-├── public/
-│   ├── index.php
-│   └── nurses.json
-├── src/
-│   ├── Controller/
-│   │   ├── LoginController.php
-│   │   ├── NurseController.php
-│   │   └── UserController.php
-│   ├── Entity/
-│   │   └── User.php
-│   ├── Form/
-│   │   └── UserType.php
-│   ├── Repository/
-│   │   └── UserRepository.php
-│   ├── Service/
-│   │   └── NurseProvider.php
-│   └── Kernel.php
-├── templates/
-│   └── user/
-├── .env
-├── .env.dev
-├── .editorconfig
-├── .gitignore
-├── composer.json
-├── composer.lock
-├── README.md
-└── symfony.lock
+* **PHP** >= 8.2 (with extensions `pdo_mysql`, `mbstring`, `xml`, `ctype`, `iconv`, `intl`)
+* **Composer** (PHP dependency manager)
+* **Database Server** MySQL / MariaDB (local via XAMPP or remote on `filess.io`)
+* **Symfony CLI** (optional, recommended for starting the local server) or Apache (XAMPP)
+* **Git**
+
+---
+
+## 🚀 Installation
+
+Follow these steps to clone the repository and set up the development environment on your local machine:
+
+### 1. Clone the repository
+Open a terminal and run the following command to download the project:
+
+```bash
+git clone https://github.com/carol1234562/Backend-and-Symfony.git
+cd Backend-and-Symfony
 ```
 
-## Main Functionality & Endpoints
+### 2. Install project dependencies
+Run Composer to download and install all required packages and libraries into the `vendor/` folder:
 
-### 1. Nurse Login
-The application validates nurse credentials (email and password) directly against the `user` table stored in the cloud database.
-
-Endpoint:
-
-- `POST /nurse/login`
-
-Expected JSON body:
-
-```json
-{
-  "email": "example@email.com",
-  "password": "secret123"
-}
+```bash
+composer install
 ```
 
-Example success response (HTTP 200):
+### 3. Configure environment variables
+The project uses `.env` files to manage configuration and database connections. You can create a `.env.local` file from the main `.env` file to adjust your local or remote server credentials:
 
-```json
-{
-  "success": true,
-  "login": true,
-  "user": {
-    "id": 1,
-    "email": "example@email.com",
-    "name": "Ana",
-    "surname": "García"
-  }
-}
+```bash
+cp .env .env.local
 ```
 
-Example invalid credentials response (HTTP 401):
+Verify that the `DATABASE_URL` variable points correctly to your MySQL database instance:
 
-```json
-{
-  "error": "Invalid credentials",
-  "success": false,
-  "login": false
-}
+```dotenv
+APP_ENV=dev
+APP_SECRET=your_secret_key_here
+DATABASE_URL="mysql://user:password@host:3306/database_name?serverVersion=8.0&charset=utf8mb4"
 ```
 
-### 2. Create Nurse
-Creates and persists a new nurse in the centralized cloud database with encrypted password using Symfony's password hasher.
+### 4. Prepare Database and Migrations
+If you are using a new database, run the following Doctrine commands to create the schema and apply the corresponding migrations:
 
-Endpoint:
-
-- `POST /nurse`
-
-Expected JSON body:
-
-```json
-{
-  "name": "Lucía",
-  "last_name": "Fernández Ruiz",
-  "national_id": "45678901B",
-  "license_number": "ENF-4567",
-  "specialty": "Pediatrics",
-  "shift": "Morning",
-  "email": "lucia.fernandez@hospital.com",
-  "password": "Password123!"
-}
+```bash
+php bin/console doctrine:database:create --if-not-exists
+php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-Example success response (HTTP 201 Created):
+---
 
-```json
-{
-  "message": "Nurse created successfully",
-  "success": true,
-  "nurse": {
-    "id": 13,
-    "name": "Lucía",
-    "last_name": "Fernández Ruiz",
-    "national_id": "45678901B",
-    "license_number": "ENF-4567",
-    "specialty": "Pediatrics",
-    "shift": "Morning",
-    "email": "lucia.fernandez@hospital.com",
-    "password": "$2y$13$..."
-  }
-}
-```
+## 💻 Usage
 
-Example missing data or validation error (HTTP 400 Bad Request):
+### 1. Start the Local Server
+You can start the development server by running any of the following options from the project root:
 
-```json
-{
-  "error": "Missing required fields: password",
-  "missing_fields": [
-    "password"
-  ],
-  "success": false
-}
-```
-
-### 3. List All Nurses
-Endpoint:
-
-- `GET /nurse/index`
-
-Queries the cloud database and returns a JSON array of all registered nurses/users.
-
-### 4. Search Nurse by Name
-Endpoint:
-
-- `GET /nurse/name/{name}`
-
-Example:
-
-```text
-GET /nurse/name/ana
-```
-
-If a match is found, the API returns the matching nurse record(s). Otherwise, it responds with:
-
-```json
-{
-  "error": "Nurse not found"
-}
-```
-
-### 5. User CRUD (Web)
-Endpoints under `/user` provide full management capabilities (List, Create, Show, Edit, Delete) for user entities via Twig templates:
-
-- `GET /user` - User listing
-- `GET/POST /user/new` - Create a new user
-- `GET /user/{id}` - View user details
-- `GET/POST /user/{id}/edit` - Edit existing user
-- `POST /user/{id}` - Delete user
-
-## Getting Started
-
-### Prerequisites
-
-Make sure the following are installed on your machine:
-
-- **PHP 8.2** or newer (with `pdo_mysql` enabled)
-- **Composer**
-- **Internet connection** (required to reach the cloud MySQL database)
-- **Postman** or **cURL** for testing endpoints
-
-> **Note:** A local MySQL/MariaDB server (such as XAMPP MySQL) is no longer required to be running locally, as all database operations connect directly to the shared cloud database instance.
-
-### Installation
-
-1. Clone the repository and navigate to the project directory:
-   ```bash
-   cd Backend-and-Symfony
-   ```
-
-2. Install dependencies:
-   ```bash
-   composer install
-   ```
-
-### Run the Project
-
-You can start the application using PHP's built-in server:
-
+**Option A — With PHP's built-in server:**
 ```bash
 php -S 127.0.0.1:8000 -t public
 ```
 
-Or using the Symfony CLI (if installed):
-
+**Option B — With Symfony CLI:**
 ```bash
 symfony server:start
 ```
 
-Then access the API at:
+The API will be available at: `http://127.0.0.1:8000`
 
-```text
-http://127.0.0.1:8000
+---
+
+### 2. API Usage Examples (CRUD Endpoints and Login)
+
+All requests and responses use the `application/json` format. You can easily test them using **Postman**, **Insomnia**, or **cURL**.
+
+#### 🔹 A. Create a new nurse (`POST /nurse`)
+* **Status codes:** `201 Created` | `400 Bad Request`
+* **Body Example (JSON):**
+```json
+{
+    "name": "Laura",
+    "last_name": "Martínez",
+    "national_id": "45123456X",
+    "license_number": "ENF-9988",
+    "specialty": "Pediatric Emergency",
+    "shift": "Morning",
+    "email": "laura.martinez@hospital.com",
+    "password": "SecurePassword2026!"
+}
 ```
 
-## Database & Environment Configuration
+#### 🔹 B. Get full nurse list (`GET /nurse/index`)
+* **Status code:** `200 OK`
+* **URL:** `GET http://127.0.0.1:8000/nurse/index`
 
-The application is configured to connect to a remote cloud MySQL database hosted on **Filess.io**.
+#### 🔹 C. Search nurse by ID (`GET /nurse/{id}`)
+* **Status codes:** `200 OK` | `404 Not Found`
+* **URL:** `GET http://127.0.0.1:8000/nurse/1`
 
-The connection string is configured in `.env`:
+#### 🔹 D. Search nurse by name (`GET /nurse/name/{name}`)
+* **Status codes:** `200 OK` | `404 Not Found`
+* **URL:** `GET http://127.0.0.1:8000/nurse/name/Laura`
 
-```env
-DATABASE_URL="mysql://hospital_app_signwhenam:[PASSWORD]@e7crf7.h.filess.io:61002/hospital_app_signwhenam"
+#### 🔹 E. Update nurse data (`PUT /nurse/{id}`)
+* **Status codes:** `200 OK` | `400 Bad Request` | `404 Not Found`
+* **URL:** `PUT http://127.0.0.1:8000/nurse/1`
+* **Body Example (JSON):**
+```json
+{
+    "name": "Laura Sofía",
+    "specialty": "Intensive Care Unit (ICU)",
+    "shift": "Night"
+}
 ```
 
-### Cloud Database Benefits for the Team:
-- **Centralized Data**: All team members interact with the same remote dataset in real time.
-- **No Local DB Setup**: No need to import/export `.sql` dumps or maintain local database configurations.
-- **Local Overrides**: If you need to test against a different database locally, create an uncommitted `.env.local` file to override `DATABASE_URL`.
+#### 🔹 F. Delete a nurse (`DELETE /nurse/{id}`)
+* **Status codes:** `200 OK` | `404 Not Found`
+* **URL:** `DELETE http://127.0.0.1:8000/nurse/1`
 
-## Useful Commands
+#### 🔹 G. Nurse login (`POST /nurse/login`)
+* **Status codes:** `200 OK` | `401 Unauthorized` | `400 Bad Request`
+* **Body Example (JSON):**
+```json
+{
+    "email": "laura.martinez@hospital.com",
+    "password": "SecurePassword2026!"
+}
+```
+
+---
+
+## 🧪 Running Automated Tests (PHPUnit)
+
+The project features automated functional tests located in `tests/Controller/NurseControllerTest.php` that verify all controller methods and their HTTP responses.
+
+To run the test suite locally in your terminal, use the following command:
 
 ```bash
-# Install PHP dependencies
-composer install
-
-# Verify database connection and schema mapping
-php bin/console doctrine:schema:validate
-
-# Run migrations (if new migrations are added)
-php bin/console doctrine:migrations:migrate
-
-# List all registered routes
-php bin/console debug:router
-
-# Clear Symfony cache
-php bin/console cache:clear
-
-# Start development server
-php -S 127.0.0.1:8000 -t public
+php vendor/phpunit/phpunit/phpunit
 ```
 
-## License
+### Continuous Integration (GitHub Actions)
+Every time a `push` is made or a `Pull Request` is opened toward the `main` branch, the workflow defined in `.github/workflows/ci.yml` runs automatically in an Ubuntu container with PHP 8.2 to ensure all tests pass before integrating new changes.
 
-This project is intended for educational purposes as part of a web development module.
+---
 
-## Author
+## 📂 Project Structure
 
-Stucom / Backend and Symfony coursework project
+```text
+Backend-and-Symfony/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                  # Continuous Integration Pipeline (GitHub Actions)
+├── config/                         # Symfony routing, services, and package configuration
+├── migrations/                     # Database schema migrations (Doctrine)
+├── public/
+│   └── index.php                   # Application main entry point
+├── src/
+│   ├── Controller/
+│   │   ├── LoginController.php     # Authentication controller
+│   │   ├── NurseController.php     # Main CRUD operations controller
+│   │   └── UserController.php      # Auxiliary user management
+│   ├── Entity/
+│   │   └── User.php                # Main ORM entity (Nurse)
+│   └── Repository/
+│       └── UserRepository.php      # User entity queries and persistence
+├── tests/
+│   └── Controller/
+│       └── NurseControllerTest.php # Unit and functional tests with PHPUnit
+├── .env                            # Default environment variables
+├── composer.json                   # PHP dependency definition
+├── phpunit.dist.xml                # PHPUnit configuration
+└── README.md                       # Project technical documentation
+```
+
+---
+
+## 👥 Authors and Development Team (PR05)
+
+* **Carolina Solorzano** 
+* **Johan Agredas** 
+* **Sergi Pereda** 
