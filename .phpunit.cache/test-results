@@ -1,1 +1,1 @@
-{"version":2,"defects":{"App\\Tests\\Controller\\NurseControllerTest::testFullNurseCrudLifecycle":7},"times":{"App\\Tests\\Controller\\NurseControllerTest::testFullNurseCrudLifecycle":14.124}}
+{"version":2,"defects":{"App\\Tests\\Controller\\NurseControllerTest::testFullNurseCrudLifecycle":7},"times":{"App\\Tests\\Controller\\NurseControllerTest::testFullNurseCrudLifecycle":11.865}}

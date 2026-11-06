@@ -22,20 +22,25 @@ class NurseController extends AbstractController
     public function index(): JsonResponse
     {
         $nurses = $this->userRepository->findAll();
+        $data = array_map(fn (User $nurse): array => $this->serializeNurse($nurse), $nurses);
 
-        return $this->json($nurses, 200);
+        return $this->json($data, 200);
     }
 
     #[Route('/nurse/name/{name}', name: 'app_nurse_find_by_name', methods: ['GET'])]
     public function findByName(string $name): JsonResponse
     {
+        if (trim($name) === '') {
+            return $this->json(['error' => 'Invalid nurse name', 'success' => false], 400);
+        }
+
         $nurse = $this->userRepository->findOneByName($name);
 
         if (!$nurse) {
-            return $this->json(['error' => 'Nurse not found'], 404);
+            return $this->json(['error' => 'Nurse not found', 'success' => false], 404);
         }
 
-        return $this->json($nurse, 200);
+        return $this->json($this->serializeNurse($nurse), 200);
     }
 
     #[Route('/nurse/{id}', name: 'app_nurse_show', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -50,7 +55,7 @@ class NurseController extends AbstractController
             ], 404);
         }
 
-        return $this->json($nurse, 200);
+        return $this->json($this->serializeNurse($nurse), 200);
     }
 
     #[Route('/nurse/{id}', name: 'app_nurse_update', requirements: ['id' => '\d+'], methods: ['PUT'])]
@@ -72,11 +77,11 @@ class NurseController extends AbstractController
         try {
             $data = json_decode($request->getContent(), false, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            return $this->json(['error' => 'Invalid JSON body'], 400);
+            return $this->json(['error' => 'Invalid JSON body', 'success' => false], 400);
         }
 
         if (!is_object($data)) {
-            return $this->json(['error' => 'The request body must be a JSON object'], 400);
+            return $this->json(['error' => 'The request body must be a JSON object', 'success' => false], 400);
         }
 
         $fields = [
@@ -124,7 +129,11 @@ class NurseController extends AbstractController
         }
 
         if ($errors !== []) {
-            return $this->json(['error' => 'Invalid nurse data', 'details' => $errors], 400);
+            return $this->json([
+                'error' => 'Invalid nurse data',
+                'details' => $errors,
+                'success' => false,
+            ], 400);
         }
 
         foreach ($fields as $field => $rules) {
@@ -138,10 +147,18 @@ class NurseController extends AbstractController
         try {
             $entityManager->flush();
         } catch (UniqueConstraintViolationException) {
-            return $this->json(['error' => 'A nurse with one of these unique values already exists'], 400);
+            return $this->json([
+                'error' => 'A nurse with one of these unique values (email, national_id or license_number) already exists',
+                'success' => false,
+            ], 400);
+        } catch (\Throwable $e) {
+            return $this->json([
+                'error' => 'Database error while updating nurse: ' . $e->getMessage(),
+                'success' => false,
+            ], 500);
         }
 
-        return $this->json($nurse, 200);
+        return $this->json($this->serializeNurse($nurse), 200);
     }
 
     #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
@@ -150,8 +167,19 @@ class NurseController extends AbstractController
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
     ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
+        $rawContent = trim($request->getContent());
+        $data = null;
+
+        if ($rawContent !== '') {
+            try {
+                $data = json_decode($rawContent, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                return $this->json([
+                    'error' => 'Malformed JSON payload',
+                    'success' => false,
+                ], 400);
+            }
+        } else {
             $data = $request->request->all();
         }
 
@@ -190,6 +218,15 @@ class NurseController extends AbstractController
             ], 400);
         }
 
+        foreach (['specialty', 'shift'] as $optionalField) {
+            if (array_key_exists($optionalField, $data) && (!is_scalar($data[$optionalField]) || trim((string) $data[$optionalField]) === '')) {
+                return $this->json([
+                    'error' => sprintf('Field "%s" cannot be an empty string', $optionalField),
+                    'success' => false,
+                ], 400);
+            }
+        }
+
         foreach ($fieldMaxLengths as $field => $maxLength) {
             if (isset($data[$field]) && is_scalar($data[$field]) && mb_strlen(trim((string) $data[$field])) > $maxLength) {
                 return $this->json([
@@ -207,6 +244,9 @@ class NurseController extends AbstractController
             ], 400);
         }
 
+        $nationalId = trim((string) $data['national_id']);
+        $licenseNumber = trim((string) $data['license_number']);
+
         if ($this->userRepository->findOneBy(['email' => $email])) {
             return $this->json([
                 'error' => 'Email already registered',
@@ -214,14 +254,14 @@ class NurseController extends AbstractController
             ], 400);
         }
 
-        if ($this->userRepository->findOneBy(['national_id' => trim((string) $data['national_id'])])) {
+        if ($this->userRepository->findOneBy(['national_id' => $nationalId])) {
             return $this->json([
                 'error' => 'National ID already registered',
                 'success' => false,
             ], 400);
         }
 
-        if ($this->userRepository->findOneBy(['license_number' => trim((string) $data['license_number'])])) {
+        if ($this->userRepository->findOneBy(['license_number' => $licenseNumber])) {
             return $this->json([
                 'error' => 'License number already registered',
                 'success' => false,
@@ -231,13 +271,13 @@ class NurseController extends AbstractController
         $user = new User();
         $user->setName(trim((string) $data['name']));
         $user->setLastName(trim((string) $data['last_name']));
-        $user->setNationalId(trim((string) $data['national_id']));
-        $user->setLicenseNumber(trim((string) $data['license_number']));
+        $user->setNationalId($nationalId);
+        $user->setLicenseNumber($licenseNumber);
         $user->setSpecialty(isset($data['specialty']) && is_scalar($data['specialty']) ? trim((string) $data['specialty']) : '');
         $user->setShift(isset($data['shift']) && is_scalar($data['shift']) ? trim((string) $data['shift']) : '');
         $user->setEmail($email);
 
-        $hashedPassword = $passwordHasher->hashPassword($user, (string) $data['password']);
+        $hashedPassword = $passwordHasher->hashPassword($user, trim((string) $data['password']));
         $user->setPassword($hashedPassword);
 
         try {
@@ -258,7 +298,7 @@ class NurseController extends AbstractController
         return $this->json([
             'message' => 'Nurse created successfully',
             'success' => true,
-            'nurse' => $user,
+            'nurse' => $this->serializeNurse($user),
         ], 201);
     }
 
@@ -274,12 +314,36 @@ class NurseController extends AbstractController
             ], 404);
         }
 
-        $entityManager->remove($nurse);
-        $entityManager->flush();
+        try {
+            $entityManager->remove($nurse);
+            $entityManager->flush();
+        } catch (\Throwable $e) {
+            return $this->json([
+                'error' => 'Could not delete nurse: ' . $e->getMessage(),
+                'success' => false,
+            ], 500);
+        }
 
         return $this->json([
             'message' => 'Nurse deleted successfully',
             'success' => true,
         ], 200);
+    }
+
+    /**
+     * Serializa la entidad User excluyendo siempre el campo confidencial password.
+     */
+    private function serializeNurse(User $nurse): array
+    {
+        return [
+            'id' => $nurse->getId(),
+            'name' => $nurse->getName(),
+            'last_name' => $nurse->getLastName(),
+            'national_id' => $nurse->getNationalId(),
+            'license_number' => $nurse->getLicenseNumber(),
+            'specialty' => $nurse->getSpecialty(),
+            'shift' => $nurse->getShift(),
+            'email' => $nurse->getEmail(),
+        ];
     }
 }
