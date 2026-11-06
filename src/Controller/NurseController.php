@@ -142,16 +142,6 @@ class NurseController extends AbstractController
         }
 
         return $this->json($nurse, 200);
-        return $this->json([
-            'id' => $nurse->getId(),
-            'name' => $nurse->getName(),
-            'last_name' => $nurse->getLastName(),
-            'national_id' => $nurse->getNationalId(),
-            'license_number' => $nurse->getLicenseNumber(),
-            'specialty' => $nurse->getSpecialty(),
-            'shift' => $nurse->getShift(),
-            'email' => $nurse->getEmail(),
-        ], 201);
     }
 
     #[Route('/nurse', name: 'app_nurse_create', methods: ['POST'])]
@@ -187,7 +177,7 @@ class NurseController extends AbstractController
 
         $missingFields = [];
         foreach ($requiredFields as $field) {
-            if (!isset($data[$field]) || trim((string) $data[$field]) === '') {
+            if (!isset($data[$field]) || !is_scalar($data[$field]) || trim((string) $data[$field]) === '') {
                 $missingFields[] = $field;
             }
         }
@@ -201,7 +191,7 @@ class NurseController extends AbstractController
         }
 
         foreach ($fieldMaxLengths as $field => $maxLength) {
-            if (mb_strlen(trim((string) $data[$field])) > $maxLength) {
+            if (isset($data[$field]) && is_scalar($data[$field]) && mb_strlen(trim((string) $data[$field])) > $maxLength) {
                 return $this->json([
                     'error' => sprintf('Field "%s" must not exceed %d characters', $field, $maxLength),
                     'success' => false,
@@ -243,8 +233,8 @@ class NurseController extends AbstractController
         $user->setLastName(trim((string) $data['last_name']));
         $user->setNationalId(trim((string) $data['national_id']));
         $user->setLicenseNumber(trim((string) $data['license_number']));
-        $user->setSpecialty(trim((string) $data['specialty']));
-        $user->setShift(trim((string) $data['shift']));
+        $user->setSpecialty(isset($data['specialty']) && is_scalar($data['specialty']) ? trim((string) $data['specialty']) : '');
+        $user->setShift(isset($data['shift']) && is_scalar($data['shift']) ? trim((string) $data['shift']) : '');
         $user->setEmail($email);
 
         $hashedPassword = $passwordHasher->hashPassword($user, (string) $data['password']);
