@@ -1,0 +1,31 @@
+name: Symfony CI
+
+on:
+  push:
+    branches: [ "main", "36-cicd-configure-github-actions-workflow-for-automated-testing" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  phpunit-tests:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_ENV: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run PHPUnit tests
+        run: php vendor/phpunit/phpunit/phpunit
